@@ -7,5 +7,25 @@
     <h1>{{ app_name }}</h1>
     <p>Nama: {{ name }}</p>
     <p>Kelas: {{ class }}</p>
+
+    <hr>
+
+    <a href="{% url 'main:create_product' %}">
+        <button>+ Add Product</button>
+    </a>
+
+    <hr>
+
+    {% for product in products %}
+        <div>
+            <h2>{{ product.name }}</h2>
+            <p>Price: {{ product.price }}</p>
+            <p>Category: {{ product.category }}</p>
+            <a href="{% url 'main:show_product' product.id %}">
+                <button>Detail</button>
+            </a>
+        </div>
+        <hr>
+    {% endfor %}
 </body>
 </html>

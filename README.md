@@ -5,86 +5,93 @@ Football Shop
 
 Live (PWS): https://faishal-khoiriansyah-footballshop.pbp.cs.ui.ac.id/  
 
+**Jelaskan mengapa kita memerlukan data delivery dalam pengimplementasian sebuah platform?**
+Data delivery memungkinkan backend menyediakan data yang terstruktur ke berbagai client (web frontend, aplikasi mobile, layanan lain/third-party). Manfaat utamanya:
 
-**Pertanyaan :**
+    Interoperabilitas: banyak bahasa dan platform bisa mem-parsing JSON/XML sehingga backend bisa melayani banyak client berbeda.
 
-**1. Jelaskan bagaimana cara kamu mengimplementasikan checklist di atas secara step-by-step (bukan hanya sekadar mengikuti tutorial).**
-1. Membuat repositori baru di GitHub khusus untuk Tugas 2, lalu clone ke lokal agar terpisah dari tutorial.
+    Separation of concerns: backend bertanggung jawab menyediakan data; tampilan (UI) dikembangkan terpisah.
 
-2. Membuat virtual environment dengan python -m venv env lalu aktivasi source env/bin/activate.
+    Skalabilitas & integrasi: memudahkan integrasi antar-service (microservices) dan pihak ketiga (mis. payment gateway, analytics).
 
-3. Install Django dan Gunicorn menggunakan pip install django gunicorn.
+    Efisiensi: format ringan (JSON) mengurangi transfer data dan parsing lebih cepat untuk aplikasi web/mobile.
 
-4. Membuat proyek Django dengan django-admin startproject football_shop ..
+    Reusability: satu API endpoint bisa dipakai oleh banyak client (web, mobile, script automatisasi).
 
-5. Membuat aplikasi main dengan python manage.py startapp main dan menambahkan 'main' ke INSTALLED_APPS di settings.py.
+**Menurutmu, mana yang lebih baik antara XML dan JSON? Mengapa JSON lebih populer dibandingkan XML?**
+JSON
+    Lebih ringkas (kurang verbose).
+    Mudah dipetakan ke struktur data native (object/array) di JavaScript dan banyak bahasa lainnya.
+    Parsing biasanya lebih cepat dan lebih sedikit overhead.
+    Lebih cocok untuk RESTful APIs modern dan aplikasi web/mobile.
 
-6. Mendefinisikan model Product di main/models.py dengan field seperti name, price, description, thumbnail, category, dan beberapa field tambahan opsional.
+XML
+    Lebih verbose, tapi mendukung fitur seperti attributes, namespaces, dan validasi via XSD.
+    Masih digunakan di beberapa domain enterprise, SOAP, atau ketika skema dan validasi ketat diperlukan.
 
-7. Melakukan migrasi database dengan python manage.py makemigrations dan python manage.py migrate.
+**Jelaskan fungsi dari method is_valid() pada form Django dan mengapa kita membutuhkan method tersebut?**
+form.is_valid() menjalankan proses validasi form secara keseluruhan:
 
-8. Membuat view show_main di main/views.py yang menampilkan nama, kelas, dan nama aplikasi.
+    Memanggil pembersihan (cleaning) tiap field (to_python, validate, run_validators).
+    Memanggil Form.clean() / ModelForm.clean() untuk validasi yang bersifat cross-field.
+    Mengisi form.cleaned_data jika valid, atau form.errors jika ada kesalahan.
+    Mengembalikan True jika semua validasi lolos, False jika ada error.
 
-9. Membuat template main.html di folder main/templates/ untuk menampilkan context dari view.
+**Mengapa kita membutuhkan csrf_token saat membuat form di Django? Apa yang dapat terjadi jika kita tidak menambahkan csrf_token pada form Django? Bagaimana hal tersebut dapat dimanfaatkan oleh penyerang?**
 
-10. Menambahkan routing di main/urls.py lalu meng-include ke football_shop/urls.py.
+{% csrf_token %} memasukkan token unik ke form yang dicocokkan dengan token pada sesi/cookie (dikelola oleh CsrfViewMiddleware).
+Token ini memastikan request POST berasal dari halaman/asal yang sah (same origin), bukan request dari situs lain.
+Jika tidak menambahkan csrf_token:
 
-11. Menambahkan requirements.txt dengan pip freeze > requirements.txt dan membuat Procfile berisi web: gunicorn football_shop.wsgi.
+Django akan menolak request POST (biasanya 403) ketika CsrfViewMiddleware aktif.
+Kalau middleware dinonaktifkan atau pengaturan salah, form tanpa CSRF dapat dimanfaatkan penyerang untuk Cross-Site Request Forgery (CSRF):
+    Contoh serangan: penyerang menaruh form tersembunyi di situsnya yang mengirim POST ke endpoint kamu (mis. POST /change-email/) — kalau korban sedang login di situs kamu, browser akan mengirim cookie sesi, dan tanpa token server tidak bisa membedakan apakah request berasal dari user atau dari penyerang → penyerang melakukan aksi atas nama korban (transfer, ubah data, dsb).
+CSRF token mencegah eksploitasi ini karena penyerang tidak bisa membaca atau menebak token yang tersimpan di sesi korban (Same-Origin Policy mencegah akses).
 
-12. Push ke GitHub menggunakan git push origin main.
+**Jelaskan bagaimana cara kamu mengimplementasikan checklist di atas secara step-by-step (bukan hanya sekadar mengikuti tutorial).**
 
-13. Deploy ke PWS dengan menambahkan remote PWS lalu git push pws master.
+1. Menambahkan Model
+    Membuat model Product di main/models.py dengan field beragam
 
-14. Verifikasi aplikasi di PWS sudah berjalan dengan membuka link project.
+2. Membuat Form
+    Menambahkan file main/forms.py:
 
-15. Membuat README.md yang berisi link aplikasi PWS dan jawaban pertanyaan tugas.
+3. Membuat Views
 
-**2. Buatlah bagan yang berisi request client ke web aplikasi berbasis Django beserta responnya dan jelaskan pada bagan tersebut kaitan antara urls.py, views.py, models.py, dan berkas html.**
+    Menambahkan 3 view utama
 
-    a. urls.py
-        - Berfungsi sebagai pengarah (router) request dari client.
-        - Setiap URL yang dikunjungi client diarahkan ke fungsi atau kelas di views.py.
+4. Menambahkan URL Routing
 
-    b. views.py
-        - Menerima request dari urls.py dan memprosesnya.
-        - Bisa mengambil data dari models.py dan menentukan template HTML mana yang digunakan untuk menampilkan hasil.
+    Mengupdate main/urls.py:
 
-    c. models.py
-        - Tempat menyimpan struktur data atau tabel database.
-        - views.py menggunakan models.py untuk mengambil atau menyimpan data.
 
-    d. Template HTML
-        - Menyediakan tampilan untuk user.
-        - Data yang dikirim dari views.py ditampilkan di sini sehingga client bisa melihat informasi yang diinginkan.
+5. Membuat Template
 
-**3. Jelaskan peran settings.py dalam proyek Django!**
+    main.html → menampilkan list produk dengan tombol Add (redirect ke create-product) dan tombol Detail untuk setiap produk.
+    create_product.html → berisi form dengan {% csrf_token %}.
+    product_detail.html → menampilkan detail satu produk.
 
-settings.py adalah berkas konfigurasi utama di proyek Django. Fungsinya seperti “pusat kontrol” untuk proyek, karena di sini kita mengatur berbagai hal penting, misalnya:
+5. Testing di Browser
 
-    Database – menentukan jenis database yang digunakan (misal SQLite, PostgreSQL) dan pengaturannya.
+    Menjalankan server
+    Mengakses:
+    http://127.0.0.1:8000/ → melihat semua produk.
+    http://127.0.0.1:8000/create-product/ → menambahkan produk baru.
+    http://127.0.0.1:8000/product/<id>/ → melihat detail produk.
 
-    Installed Apps – daftar aplikasi Django yang aktif di proyek.
+6. Testing Data Delivery dengan Postman
 
-    Template & Static Files – lokasi template HTML, CSS, JavaScript, gambar, dll.
+    Melakukan GET request ke:
+    http://127.0.0.1:8000/json/
+    http://127.0.0.1:8000/xml/
+    http://127.0.0.1:8000/json/<id>/
+    http://127.0.0.1:8000/xml/<id>/
 
-    Security – pengaturan kunci rahasia (SECRET_KEY), debug mode, dan allowed hosts.
 
-    Middleware & URL Config – daftar middleware dan file URL utama yang dipakai.
+**Apakah ada feedback untuk asdos di tutorial 2 yang sudah kalian kerjakan?**
+Tambahkan lebih banyak contoh troubleshooting
 
-    Pengaturan Lain – bahasa, zona waktu, pengaturan email, logging, dll.
-
-**4. Bagaimana cara kerja migrasi database di Django?**
-
-    1. Membuat model, Kita mendefinisikan struktur data atau tabel di models.py.
-
-    2. Membuat file migrasi, Django membaca perubahan di models.py dan membuat file migrasi menggunakan perintah: python manage.py makemigrations
-
-    3. Menerapkan migrasi ke database. Setelah file migrasi dibuat, dijalankan perintah: python manage.py migrate
-    Django mengeksekusi instruksi di file migrasi dan menyesuaikan struktur database sesuai model.
-
-**5. Menurut Anda, dari semua framework yang ada, mengapa framework Django dijadikan permulaan pembelajaran pengembangan perangkat lunak?**
-
-Django sering dipilih sebagai framework awal karena mudah dipahami, lengkap, dan cepat digunakan. Dengan Django, kita bisa belajar konsep web development sekaligus praktik nyata tanpa harus membuat semuanya dari nol, karena sudah tersedia banyak fitur siap pakai, seperti autentikasi pengguna, manajemen database, dan antarmuka admin. Selain itu, Django menggunakan Python, yang dikenal sederhana dan mudah dipelajari, sehingga cocok untuk pemula yang ingin memahami logika pemrograman dan alur aplikasi web secara menyeluruh.
-
-**6. Apakah ada feedback untuk asisten dosen tutorial 1 yang telah kamu kerjakan sebelumnya?**
-Materi Tutorial 1 disajikannya sangat baik, penjelasannya tetap enak diikuti. Bahasa yang digunakan jelas dan mudah dimengerti, sehingga walaupun hanya membaca, materi tetap gampang dipahami.
+![alt text](<Screenshot 2025-09-16 at 23.31.41.png>)
+![alt text](<Screenshot 2025-09-16 at 23.32.04.png>)
+![alt text](<Screenshot 2025-09-16 at 23.43.44.png>)
+![alt text](<Screenshot 2025-09-16 at 23.44.11.png>)

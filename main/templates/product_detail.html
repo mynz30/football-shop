@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>{{ product.name }}</title>
+</head>
+<body>
+  <p><a href="{% url 'main:show_main' %}">← Back</a></p>
+
+  <h1>{{ product.name }}</h1>
+  <p><b>Price:</b> {{ product.price }}</p>
+  <p><b>Category:</b> {{ product.category }}</p>
+  <p><b>Stock:</b> {{ product.stock }}</p>
+
+  {% if product.thumbnail %}
+    <p><img src="{{ product.thumbnail }}" alt="{{ product.name }}" width="200"></p>
+  {% endif %}
+
+  <p>{{ product.description }}</p>
+</body>
+</html>
