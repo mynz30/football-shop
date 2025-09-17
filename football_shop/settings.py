@@ -25,7 +25,11 @@ SECRET_KEY = 'django-insecure-d6x7y=3aw^5!qn&x(*4vyjyldqlg3%iw#114n@tix5jg))f2jh
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "https://pbp.cs.ui.ac.id/faishal.khoiriansyah/footballshop", "https://faishal-khoiriansyah-footballshop.pbp.cs.ui.ac.id"]
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "faishal-khoiriansyah-footballshop.pbp.cs.ui.ac.id",
+]
 
 CSRF_TRUSTED_ORIGINS = ["https://faishal-khoiriansyah-footballshop.pbp.cs.ui.ac.id"]
 
