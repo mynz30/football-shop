@@ -11,7 +11,7 @@ def show_main(request):
         "name": "Faishal Khoiriansyah Wicaksono",
         "class": "PBP D",
         "app_name": "Football Shop",
-        "products": products
+        "product_list": products
     }
     return render(request, "main.html", context)
 
