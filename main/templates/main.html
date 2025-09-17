@@ -21,6 +21,7 @@
             <h2>{{ product.name }}</h2>
             <p>Price: {{ product.price }}</p>
             <p>Category: {{ product.category }}</p>
+            <p><img src="{{ product.thumbnail }}" alt="{{ product.name }}" width="200"></p>
             <a href="{% url 'main:show_product' product.id %}">
                 <button>Detail</button>
             </a>
