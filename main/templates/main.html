@@ -1,32 +1,37 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{{ app_name }}</title>
-</head>
-<body>
-    <h1>{{ app_name }}</h1>
-    <p>Nama: {{ name }}</p>
-    <p>Kelas: {{ class }}</p>
+{% extends 'base.html' %}
+{% block content %}
+<h1>Football Shop</h1>
 
-    <hr>
+<h5>Name:</h5>
+<p>{{ name }}</p>
 
-    <a href="{% url 'main:create_product' %}">
-        <button>+ Add Product</button>
-    </a>
+<h5>Class:</h5>
+<p>{{ class }}</p>
 
-    <hr>
+<h5>App Name:</h5>
+<p>{{ app_name }}</p>
 
-    {% for product in products %}
-        <div>
-            <h2>{{ product.name }}</h2>
-            <p>Price: Rp. {{ product.price }}</p>
-            <p>Category: {{ product.category }}</p>
-            <p><img src="{{ product.thumbnail }}" alt="{{ product.name }}" width="200"></p>
-            <a href="{% url 'main:show_product' product.id %}">
-                <button>Detail</button>
-            </a>
-        </div>
-        <hr>
-    {% endfor %}
-</body>
-</html>
+<a href="{% url 'main:create_product' %}">
+  <button>+ Add Product</button>
+</a>
+
+<hr>
+
+{% if not product_list %}
+<p>Belum ada data produk di football shop.</p>
+{% else %}
+{% for product in product_list %}
+<div>
+  <h2>{{ product.name }}</h2>
+  <p>Brand: {{ product.brand }} | Stock: {{ product.stock }} | Rating: {{ product.rating }}</p>
+  <p>Price: Rp {{ product.price }}</p>
+  {% if product.thumbnail %}
+  <img src="{{ product.thumbnail }}" alt="thumbnail" width="150" height="100">
+  <br>
+  {% endif %}
+  <p>{{ product.description|truncatewords:25 }}...</p>
+</div>
+<hr>
+{% endfor %}
+{% endif %}
+{% endblock content %}
