@@ -30,7 +30,7 @@ SECRET_KEY = os.getenv(
 PRODUCTION = os.getenv("PRODUCTION", "False").lower() == "true"
 
 # Debug mode
-DEBUG = not PRODUCTION
+DEBUG = True
 
 ALLOWED_HOSTS = [
     "localhost",
