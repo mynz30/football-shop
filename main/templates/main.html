@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>Football Shop</h1>
+<h1>Juventus Store Indonesia</h1>
 
 <h5>Name:</h5>
 <p>{{ name }}</p>
@@ -15,7 +15,18 @@
   <button>+ Add Product</button>
 </a>
 
+<a href="{% url 'main:logout' %}">
+  <button>Logout</button>
+</a>
+<h5>Sesi terakhir login: {{ last_login }}</h5>
 <hr>
+
+<a href="?filter=all">
+  <button type="button">All Articles</button>
+</a>
+<a href="?filter=my">
+  <button type="button">My Articles</button>
+</a> 
 
 {% if not product_list %}
 <p>Belum ada data produk di football shop.</p>
@@ -26,10 +37,15 @@
   <p>Brand: {{ product.brand }} | Stock: {{ product.stock }} | Rating: {{ product.rating }}</p>
   <p>Price: Rp {{ product.price }}</p>
   {% if product.thumbnail %}
-  <img src="{{ product.thumbnail }}" alt="thumbnail" width="150" height="100">
+  <img src="{{ product.thumbnail }}" alt="thumbnail" width="200" height="210">
   <br>
   {% endif %}
   <p>{{ product.description|truncatewords:25 }}...</p>
+
+  <form action="{% url 'main:show_product' id=product.id %}" method="get" style="display:inline;">
+    <button type="submit">Detail</button>
+  </form>
+  
 </div>
 <hr>
 {% endfor %}
