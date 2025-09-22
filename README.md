@@ -5,93 +5,57 @@ Football Shop
 
 Live (PWS): https://faishal-khoiriansyah-footballshop.pbp.cs.ui.ac.id/  
 
-**Jelaskan mengapa kita memerlukan data delivery dalam pengimplementasian sebuah platform?**
-Data delivery memungkinkan backend menyediakan data yang terstruktur ke berbagai client (web frontend, aplikasi mobile, layanan lain/third-party). Manfaat utamanya:
+1) Apa itu Django `AuthenticationForm`?
 
-    Interoperabilitas: banyak bahasa dan platform bisa mem-parsing JSON/XML sehingga backend bisa melayani banyak client berbeda.
+`AuthenticationForm` adalah form bawaan Django untuk login menggunakan username dan password. Kelebihan:
 
-    Separation of concerns: backend bertanggung jawab menyediakan data; tampilan (UI) dikembangkan terpisah.
+* Terintegrasi dengan backend Django.
+* Validasi kredensial dan user inactive otomatis.
+* Mudah digunakan di template.
 
-    Skalabilitas & integrasi: memudahkan integrasi antar-service (microservices) dan pihak ketiga (mis. payment gateway, analytics).
+Kekurangan:
 
-    Efisiensi: format ringan (JSON) mengurangi transfer data dan parsing lebih cepat untuk aplikasi web/mobile.
+* Hanya mendukung username+password.
+* Tidak ada 2FA atau captcha bawaan.
+* Pesan error generik.
 
-    Reusability: satu API endpoint bisa dipakai oleh banyak client (web, mobile, script automatisasi).
+---
 
-**Menurutmu, mana yang lebih baik antara XML dan JSON? Mengapa JSON lebih populer dibandingkan XML?**
-JSON
-    Lebih ringkas (kurang verbose).
-    Mudah dipetakan ke struktur data native (object/array) di JavaScript dan banyak bahasa lainnya.
-    Parsing biasanya lebih cepat dan lebih sedikit overhead.
-    Lebih cocok untuk RESTful APIs modern dan aplikasi web/mobile.
+2) Apa perbedaan antara autentikasi dan otorisasi? Bagaimana Django mengimplementasikannya?
 
-XML
-    Lebih verbose, tapi mendukung fitur seperti attributes, namespaces, dan validasi via XSD.
-    Masih digunakan di beberapa domain enterprise, SOAP, atau ketika skema dan validasi ketat diperlukan.
+* **Autentikasi**: memverifikasi identitas (Siapakah Anda?).
+* **Otorisasi**: menentukan hak akses (Apa yang boleh dilakukan?).
 
-**Jelaskan fungsi dari method is_valid() pada form Django dan mengapa kita membutuhkan method tersebut?**
-form.is_valid() menjalankan proses validasi form secara keseluruhan:
+Django:
 
-    Memanggil pembersihan (cleaning) tiap field (to_python, validate, run_validators).
-    Memanggil Form.clean() / ModelForm.clean() untuk validasi yang bersifat cross-field.
-    Mengisi form.cleaned_data jika valid, atau form.errors jika ada kesalahan.
-    Mengembalikan True jika semua validasi lolos, False jika ada error.
+* Autentikasi: `authenticate()`, `login()`, `request.user`
+* Otorisasi: `user.has_perm()`, decorators `@login_required`, `@permission_required`
 
-**Mengapa kita membutuhkan csrf_token saat membuat form di Django? Apa yang dapat terjadi jika kita tidak menambahkan csrf_token pada form Django? Bagaimana hal tersebut dapat dimanfaatkan oleh penyerang?**
+---
 
-{% csrf_token %} memasukkan token unik ke form yang dicocokkan dengan token pada sesi/cookie (dikelola oleh CsrfViewMiddleware).
-Token ini memastikan request POST berasal dari halaman/asal yang sah (same origin), bukan request dari situs lain.
-Jika tidak menambahkan csrf_token:
+3) Apa saja kelebihan dan kekurangan session dan cookies dalam konteks menyimpan state di aplikasi web?
 
-Django akan menolak request POST (biasanya 403) ketika CsrfViewMiddleware aktif.
-Kalau middleware dinonaktifkan atau pengaturan salah, form tanpa CSRF dapat dimanfaatkan penyerang untuk Cross-Site Request Forgery (CSRF):
-    Contoh serangan: penyerang menaruh form tersembunyi di situsnya yang mengirim POST ke endpoint kamu (mis. POST /change-email/) — kalau korban sedang login di situs kamu, browser akan mengirim cookie sesi, dan tanpa token server tidak bisa membedakan apakah request berasal dari user atau dari penyerang → penyerang melakukan aksi atas nama korban (transfer, ubah data, dsb).
-CSRF token mencegah eksploitasi ini karena penyerang tidak bisa membaca atau menebak token yang tersimpan di sesi korban (Same-Origin Policy mencegah akses).
+* **Cookies**: disimpan di browser, kapasitas kecil, bisa diubah user.
+* **Session**: disimpan di server, lebih aman, bisa invalidasi paksa, perlu backend (DB/Redis).
 
-**Jelaskan bagaimana cara kamu mengimplementasikan checklist di atas secara step-by-step (bukan hanya sekadar mengikuti tutorial).**
+---
 
-1. Menambahkan Model
-    Membuat model Product di main/models.py dengan field beragam
+4) Apakah penggunaan cookies aman secara default dalam pengembangan web? Risiko potensial dan bagaimana Django menanganinya.
 
-2. Membuat Form
-    Menambahkan file main/forms.py:
+* Tidak sepenuhnya aman secara default.
+* Risiko: XSS, CSRF, session hijacking.
+* Django membantu dengan: signed cookies, HttpOnly, CSRF middleware, Secure flag.
 
-3. Membuat Views
+---
 
-    Menambahkan 3 view utama
+5) Jelaskan bagaimana cara mengimplementasikan checklist di atas secara step-by-step (bukan hanya mengikuti tutorial)
 
-4. Menambahkan URL Routing
-
-    Mengupdate main/urls.py:
+1. Pilih model user: default atau custom.
+2. Konfigurasi session di `settings.py` dan keamanan cookie.
+3. Buat login view menggunakan `AuthenticationForm`.
+4. Atur permission & group.
+5. Tambahkan rate-limit/lockout jika perlu.
+6. Test flow login, permission, session.
+7. Deployment: gunakan HTTPS, Redis (jika multiple instance), dan environment variables.
 
 
-5. Membuat Template
-
-    main.html → menampilkan list produk dengan tombol Add (redirect ke create-product) dan tombol Detail untuk setiap produk.
-    create_product.html → berisi form dengan {% csrf_token %}.
-    product_detail.html → menampilkan detail satu produk.
-
-5. Testing di Browser
-
-    Menjalankan server
-    Mengakses:
-    http://127.0.0.1:8000/ → melihat semua produk.
-    http://127.0.0.1:8000/create-product/ → menambahkan produk baru.
-    http://127.0.0.1:8000/product/<id>/ → melihat detail produk.
-
-6. Testing Data Delivery dengan Postman
-
-    Melakukan GET request ke:
-    http://127.0.0.1:8000/json/
-    http://127.0.0.1:8000/xml/
-    http://127.0.0.1:8000/json/<id>/
-    http://127.0.0.1:8000/xml/<id>/
-
-
-**Apakah ada feedback untuk asdos di tutorial 2 yang sudah kalian kerjakan?**
-Tambahkan lebih banyak contoh troubleshooting
-
-![alt text](<Screenshot 2025-09-16 at 23.31.41.png>)
-![alt text](<Screenshot 2025-09-16 at 23.32.04.png>)
-![alt text](<Screenshot 2025-09-16 at 23.43.44.png>)
-![alt text](<Screenshot 2025-09-16 at 23.44.11.png>)
