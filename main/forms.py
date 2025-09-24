@@ -10,3 +10,4 @@ class CarForm(ModelForm):
     class Meta:
         model = Car
         fields = ["name", "brand", "stock"]
+        #eee
