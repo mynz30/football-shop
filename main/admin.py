@@ -7,4 +7,3 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields = ('name', 'category', 'brand')
 
 
-# Register your models here.
