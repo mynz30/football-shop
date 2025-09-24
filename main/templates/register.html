@@ -20,12 +20,20 @@
     </table>
   </form>
 
+  <!-- ✅ tampilkan pesan sukses (messages) -->
   {% if messages %}
-  <ul>
-    {% for message in messages %}
-    <li>{{ message }}</li>
-    {% endfor %}
-  </ul>
+    <ul>
+      {% for message in messages %}
+        <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <!-- ✅ tampilkan error validasi form -->
+  {% if form.errors %}
+    <div style="color: red; margin-top:10px;">
+      {{ form.errors }}
+    </div>
   {% endif %}
 </div>
 
