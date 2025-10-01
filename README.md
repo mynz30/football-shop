@@ -5,57 +5,56 @@ Football Shop
 
 Live (PWS): https://faishal-khoiriansyah-footballshop.pbp.cs.ui.ac.id/  
 
-1) Apa itu Django `AuthenticationForm`?
 
-`AuthenticationForm` adalah form bawaan Django untuk login menggunakan username dan password. Kelebihan:
-
-* Terintegrasi dengan backend Django.
-* Validasi kredensial dan user inactive otomatis.
-* Mudah digunakan di template.
-
-Kekurangan:
-
-* Hanya mendukung username+password.
-* Tidak ada 2FA atau captcha bawaan.
-* Pesan error generik.
+## 1. Jika terdapat beberapa CSS selector untuk suatu elemen HTML, jelaskan urutan prioritas pengambilan CSS selector tersebut!
+CSS punya aturan prioritas (specificity). Urutannya:
+1. **Inline style** (paling tinggi).
+2. **ID selector** (`#id`).
+3. **Class, pseudo-class, dan attribute selector** (`.class`, `:hover`, `[type=text]`).
+4. **Element selector** (`div`, `p`, `h1`).
+Kalau ada bentrok, yang lebih spesifik dan muncul paling terakhir akan dipakai.
 
 ---
 
-2) Apa perbedaan antara autentikasi dan otorisasi? Bagaimana Django mengimplementasikannya?
-
-* **Autentikasi**: memverifikasi identitas (Siapakah Anda?).
-* **Otorisasi**: menentukan hak akses (Apa yang boleh dilakukan?).
-
-Django:
-
-* Autentikasi: `authenticate()`, `login()`, `request.user`
-* Otorisasi: `user.has_perm()`, decorators `@login_required`, `@permission_required`
+## 2. Mengapa responsive design menjadi konsep yang penting dalam pengembangan aplikasi web?  
+Responsive design penting karena bikin tampilan web nyaman di berbagai ukuran layar (HP, tablet, laptop).  
+- **Contoh yang sudah responsive**: Instagram → tampilan tetap rapi dan enak dilihat baik di HP maupun desktop.  
+- **Contoh yang belum responsive**: Website lama sekolah/kampus → biasanya kalau dibuka di HP harus zoom in/out, layout jadi berantakan.  
 
 ---
 
-3) Apa saja kelebihan dan kekurangan session dan cookies dalam konteks menyimpan state di aplikasi web?
+## 3. Jelaskan perbedaan antara margin, border, dan padding, serta cara untuk mengimplementasikan ketiga hal tersebut!  
+- **Margin**: Jarak luar antar elemen.  
+- **Border**: Garis tepi elemen.  
+- **Padding**: Jarak dalam antara konten dengan border.  
 
-* **Cookies**: disimpan di browser, kapasitas kecil, bisa diubah user.
-* **Session**: disimpan di server, lebih aman, bisa invalidasi paksa, perlu backend (DB/Redis).
-
----
-
-4) Apakah penggunaan cookies aman secara default dalam pengembangan web? Risiko potensial dan bagaimana Django menanganinya.
-
-* Tidak sepenuhnya aman secara default.
-* Risiko: XSS, CSRF, session hijacking.
-* Django membantu dengan: signed cookies, HttpOnly, CSRF middleware, Secure flag.
-
----
-
-5) Jelaskan bagaimana cara mengimplementasikan checklist di atas secara step-by-step (bukan hanya mengikuti tutorial)
-
-1. Pilih model user: default atau custom.
-2. Konfigurasi session di `settings.py` dan keamanan cookie.
-3. Buat login view menggunakan `AuthenticationForm`.
-4. Atur permission & group.
-5. Tambahkan rate-limit/lockout jika perlu.
-6. Test flow login, permission, session.
-7. Deployment: gunakan HTTPS, Redis (jika multiple instance), dan environment variables.
+Contoh implementasi di CSS:
+```css
+div {
+  margin: 20px;   /* jarak luar */
+  border: 2px solid black;  /* garis tepi */
+  padding: 15px;  /* jarak dalam */
+}
 
 
+## 4. Jelaskan konsep flex box dan grid layout beserta kegunaannya!
+
+Flexbox: Cocok buat ngatur elemen dalam satu arah (row/column). Biasanya dipakai untuk navbar, card, atau alignment sederhana.
+
+Grid Layout: Cocok untuk layout dua dimensi (baris dan kolom). Biasanya dipakai buat dashboard, galeri foto, atau layout kompleks.
+
+## 5. Jelaskan bagaimana cara kamu mengimplementasikan checklist di atas secara step-by-step!
+
+Mulai dengan bikin struktur HTML dasar.
+
+Tambahin CSS buat margin, border, dan padding sesuai kebutuhan.
+
+Pakai selector dengan prioritas yang tepat (ID/Class/Element).
+
+Implementasi responsive design pakai media query (@media).
+
+Gunakan Flexbox untuk layout searah (misalnya card product).
+
+Pakai Grid kalau layout lebih kompleks.
+
+Tes di berbagai device biar tampilannya konsisten.

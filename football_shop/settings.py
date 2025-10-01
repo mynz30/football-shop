@@ -50,12 +50,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     # App buatan sendiri
     'main',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',   
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -63,6 +65,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
 
 ROOT_URLCONF = 'football_shop.urls'
 
@@ -130,8 +133,15 @@ USE_I18N = True
 USE_TZ = True
 
 # Static files
+# Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 
+if DEBUG:
+    STATICFILES_DIRS = [
+        BASE_DIR / 'static',   # folder static saat development
+    ]
+else:
+    STATIC_ROOT = BASE_DIR / 'static'   # folder static saat production
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

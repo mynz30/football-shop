@@ -102,3 +102,38 @@ def logout_user(request):
     response = HttpResponseRedirect(reverse('main:login'))
     response.delete_cookie('last_login')
     return response
+
+@login_required(login_url='/login/')
+def edit_product(request, id):
+    product = get_object_or_404(Product, pk=id, user=request.user)  # hanya bisa edit produk milik user
+    form = ProductForm(request.POST or None, instance=product)
+
+    if form.is_valid() and request.method == "POST":
+        form.save()
+        return redirect("main:show_main")
+
+    context = {
+        "form": form,
+        "product": product
+    }
+    return render(request, "edit_product.html", context)
+
+@login_required(login_url='/login/')
+def delete_product(request, id):
+    product = get_object_or_404(Product, pk=id, user=request.user)  # hanya pemilik produk yg bisa hapus
+    product.delete()
+    return HttpResponseRedirect(reverse('main:show_main'))
+
+@login_required(login_url='/login/')
+def add_to_cart(request, id):
+    product = get_object_or_404(Product, pk=id)
+
+    # contoh logika dasar
+    if product.stock > 0:
+        product.stock -= 1
+        product.save()
+        messages.success(request, f"{product.name} berhasil ditambahkan ke cart!")
+    else:
+        messages.error(request, f"{product.name} sudah habis stoknya!")
+
+    return redirect("main:show_main")
