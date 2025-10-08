@@ -6,52 +6,160 @@
 {% endblock meta %}
 
 {% block content %}
-{% include 'navbar.html' %}
 <div class="bg-gray-50 w-full pt-16 min-h-screen">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-    <!-- Header Section -->
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-gray-900 mb-2">Our Juventus Products</h1>
       <p class="text-gray-600">Explore the latest Juventus gear, apparel, and accessories</p>
     </div>
 
+    {% if user.is_authenticated %}
+    <button onclick="showModal()" 
+    class="inline-flex items-center px-4 py-2 bg-black text-white font-medium rounded-md hover:bg-gray-800 transition mb-6">
+    + Add Product via AJAX
+  </button>
+  {% endif %}
+
     <!-- Filter Section -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 bg-white rounded-lg border border-gray-200 p-4">
       <div class="flex space-x-3 mb-4 sm:mb-0">
-        <a href="?" class="{% if request.GET.filter == 'all' or not request.GET.filter  %} bg-black text-white{% else %}bg-white text-gray-700 border border-gray-300{% endif %} px-4 py-2 rounded-md font-medium transition-colors hover:bg-black hover:text-white">
+        <a id="filter-all" class="bg-black text-white px-4 py-2 rounded-md font-medium transition-colors hover:bg-gray-800">
           All Products
         </a>
-        <a href="?filter=my" class="{% if request.GET.filter == 'my' %} bg-black text-white{% else %}bg-white text-gray-700 border border-gray-300{% endif %} px-4 py-2 rounded-md font-medium transition-colors hover:bg-black hover:text-white">
+        <a id="filter-my" class="bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-md font-medium transition-colors hover:bg-black hover:text-white">
           My Products
         </a>
       </div>
       {% if user.is_authenticated %}
-        <div class="text-sm text-gray-500">
-          Last login: {{ last_login }}
-        </div>
+        <div class="text-sm text-gray-500">Last login: {{ last_login }}</div>
       {% endif %}
     </div>
 
+    <!-- Loading -->
+    <div id="loading" class="bg-white rounded-lg border border-gray-200 p-12 text-center hidden">
+      <p class="text-gray-600 mt-3">Loading products...</p>
+    </div>
+
+    <!-- Error -->
+    <div id="error" class="hidden text-center text-red-500 font-medium">Failed to load products 😥</div>
+
     <!-- Product Grid -->
-    {% if not product_list %}
-      <div class="bg-white rounded-lg border border-gray-200 p-12 text-center">
-        <div class="w-32 h-32 mx-auto mb-4">
-          <img src="{% static 'image/no-product.png' %}" alt="No products available" class="w-full h-full object-contain">
-        </div>
-        <h3 class="text-lg font-medium text-gray-900 mb-2">No products found</h3>
-        <p class="text-gray-500 mb-6">Be the first to add a Juventus product to the store.</p>
-        <a href="{% url 'main:create_product' %}" class="inline-flex items-center px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors">
-          Add Product
-        </a>
+    <div id="grid" class="hidden"></div>
+
+    <!-- Empty -->
+    <div id="empty" class="bg-white rounded-lg border border-gray-200 p-12 text-center hidden">
+      <div class="w-32 h-32 mx-auto mb-4">
+        <img src="{% static 'image/no-product.png' %}" alt="No products available" class="w-full h-full object-contain">
       </div>
-    {% else %}
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% for product in product_list %}
-          {% include 'card_product.html' with product=product %}
-        {% endfor %}
-      </div>
-    {% endif %}
+      <h3 class="text-lg font-medium text-gray-900 mb-2">No products found</h3>
+      <p class="text-gray-500 mb-6">Be the first to add a Juventus product to the store.</p>
+      <a href="{% url 'main:create_product' %}" class="inline-flex items-center px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors">
+        Add Product
+      </a>
+    </div>
   </div>
 </div>
+
+<script>
+  const PRODUCT_API_ENDPOINT = "{% url 'main:show_json' %}";
+  const CURRENT_USER_ID = "{{ user.id|default_if_none:'' }}";
+  
+  const loading = document.getElementById('loading');
+  const error = document.getElementById('error');
+  const empty = document.getElementById('empty');
+  const grid = document.getElementById('grid');
+  const btnAll = document.getElementById('filter-all');
+  const btnMy = document.getElementById('filter-my');
+  
+  let activeFilter = 'all';
+  let allProducts = [];
+  
+  function showSection({loadingS=false, errorS=false, emptyS=false, gridS=false}) {
+    loading.classList.toggle('hidden', !loadingS);
+    error.classList.toggle('hidden', !errorS);
+    empty.classList.toggle('hidden', !emptyS);
+    grid.classList.toggle('hidden', !gridS);
+    if (gridS) grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8';
+  }
+  
+  function buildProductCard(product) {
+    const card = document.createElement('div');
+    card.className = 'bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition duration-200 flex flex-col overflow-hidden';
+  
+    const image = product.thumbnail
+      ? `<img src="${DOMPurify.sanitize(product.thumbnail)}" alt="${DOMPurify.sanitize(product.name)}" class="w-full h-64 object-cover">`
+      : `<div class="w-full h-64 bg-gray-100 flex items-center justify-center text-gray-400">No Image</div>`;
+  
+    card.innerHTML = `
+      ${image}
+      <div class="p-5 flex flex-col flex-1">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-xs font-medium bg-gray-100 px-2 py-1 rounded">${DOMPurify.sanitize(product.category || 'Jersey')}</span>
+          ${product.is_featured ? `<span class="text-xs text-gray-500">⭐ Featured</span>` : ''}
+        </div>
+        <h3 class="text-base font-semibold text-gray-900 mb-2">${DOMPurify.sanitize(product.name)}</h3>
+        <p class="text-gray-600 text-sm mb-4 line-clamp-2">${DOMPurify.sanitize(product.description)}</p>
+        <div class="mt-auto flex justify-between items-center">
+          <span class="font-bold text-gray-900">Rp ${Number(product.price).toLocaleString('id-ID')}</span>
+          <button class="bg-black text-white px-3 py-1.5 text-sm rounded hover:bg-gray-800 transition">Add to Cart</button>
+        </div>
+      </div>
+    `;
+    return card;
+  }
+  
+  function renderProducts(data) {
+    grid.innerHTML = '';
+    data.forEach(p => grid.appendChild(buildProductCard(p)));
+  }
+  
+  function filterProducts() {
+    const filtered = activeFilter === 'all'
+      ? allProducts
+      : allProducts.filter(p => Number(p.user_id) === Number(CURRENT_USER_ID));
+  
+    if (filtered.length === 0) {
+      showSection({emptyS:true});
+    } else {
+      renderProducts(filtered);
+      showSection({gridS:true});
+    }
+  }
+  
+  async function fetchProducts() {
+    try {
+      showSection({loadingS:true});
+      const res = await fetch(PRODUCT_API_ENDPOINT);
+      if (!res.ok) throw new Error('Fetch failed');
+      allProducts = await res.json();
+      filterProducts();
+    } catch (err) {
+      console.error(err);
+      showSection({errorS:true});
+    }
+  }
+  
+  btnAll.addEventListener('click', () => {
+    activeFilter = 'all';
+    btnAll.classList.add('bg-black', 'text-white');
+    btnMy.classList.remove('bg-black', 'text-white');
+    filterProducts();
+  });
+  
+  btnMy.addEventListener('click', () => {
+    activeFilter = 'my';
+    btnMy.classList.add('bg-black', 'text-white');
+    btnAll.classList.remove('bg-black', 'text-white');
+    filterProducts();
+  });
+  
+  fetchProducts();
+  
+  document.addEventListener('productAdded', function() {
+    showToast("Update 🔁", "Daftar produk berhasil diperbarui!", "normal");
+    fetchProducts();
+  });
+  </script>
+  
+
 {% endblock content %}

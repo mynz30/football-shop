@@ -1,0 +1,30 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Juventus Store Indonesia{% endblock %}</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="{% static 'css/global.css' %}">
+</head>
+
+<body class="bg-gray-50 font-sans text-gray-900 pt-16">
+  <!-- ✅ Navbar global -->
+  {% include 'navbar.html' %}
+
+  <!-- ✅ Halaman utama -->
+  <main class="max-w-7xl mx-auto px-6 py-8">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- ✅ Komponen interaktif: tidak mengubah layout -->
+  {% include 'toast.html' %}
+  {% include 'modal.html' %}
+
+  <!-- ✅ Script global -->
+  <script src="{% static 'js/toast.js' %}"></script>
+  <script src="{% static 'js/modal.js' %}"></script>
+</body>
+</html>

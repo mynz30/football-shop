@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.core import serializers
 from main.models import Product
 from main.forms import ProductForm
@@ -10,6 +10,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 import datetime
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from .models import Product
+from django.utils.html import strip_tags
 
 # Halaman utama menampilkan list produk
 @login_required(login_url='/login/')
@@ -35,7 +39,7 @@ def create_product(request):
     form = ProductForm(request.POST or None)
     if form.is_valid() and request.method == "POST":
         product_entry = form.save(commit = False)
-        product_entry.user = request.user
+        product_entry.user = request.user # Set user yg membuat produk
         form.save()
         return redirect("main:show_main")
     context = {"form": form}
@@ -55,14 +59,37 @@ def show_xml(request):
 
 # Data Delivery - JSON
 def show_json(request):
-    data = Product.objects.all()
-    return HttpResponse(serializers.serialize("json", data), content_type="application/json")
+    product_list = Product.objects.all()
+    data = [
+        {
+            'id': str(product.id),
+            'name': product.name,
+            'price': product.price,
+            'description': product.description,
+            'category': product.category,
+            'thumbnail': product.thumbnail,
+            'user_id': product.user.id if product.user else None,
+        }
+        for product in product_list
+    ]
+    return JsonResponse(data, safe=False)
 
 def show_json_by_id(request, id):
-    # Cari product berdasarkan ID, kalau tidak ada -> return 404
-    product = get_object_or_404(Product, pk=id)
-    data = serializers.serialize("json", [product])  # bungkus dalam list
-    return HttpResponse(data, content_type="application/json")
+    try:
+        product = Product.objects.select_related('user').get(pk=id)
+        data = {
+            'id': str(product.id),
+            'name': product.name,
+            'price': product.price,
+            'description': product.description,
+            'category': product.category,
+            'thumbnail': product.thumbnail if product.thumbnail else None,  # ✅ diganti ke thumbnail
+            'created_at': product.created_at.isoformat() if product.created_at else None,
+            'user_username': product.user.username if product.user_id else None,
+        }
+        return JsonResponse(data)
+    except Product.DoesNotExist:
+        return JsonResponse({'detail': 'Not found'}, status=404)
 
 def show_xml_by_id(request, id):
     product = get_object_or_404(Product, pk=id)
@@ -137,3 +164,32 @@ def add_to_cart(request, id):
         messages.error(request, f"{product.name} sudah habis stoknya!")
 
     return redirect("main:show_main")
+
+@csrf_exempt
+@require_POST
+def add_product_ajax(request):
+    if request.method == "POST":
+        name = strip_tags(request.POST.get("name"))
+        price = int(request.POST.get("price"))
+        description = strip_tags(request.POST.get("description"))
+        thumbnail = strip_tags(request.POST.get("thumbnail"))
+        stock = int(request.POST.get("stock"))
+        category = strip_tags(request.POST.get("category"))
+        brand = strip_tags(request.POST.get("brand"))
+        is_featured = request.POST.get("is_featured") == "on"
+
+        new_product = Product.objects.create(
+            name=name,
+            price=price,
+            description=description,
+            thumbnail=thumbnail,
+            stock=stock,
+            category=category,
+            brand=brand,
+            is_featured=is_featured,
+            user=request.user
+        )
+
+        return JsonResponse({"message": "success"})
+    return JsonResponse({"message": "error"}, status=400)
+
