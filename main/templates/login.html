@@ -5,6 +5,9 @@
 {% endblock meta %}
 
 {% block content %}
+<!-- Toast Container -->
+<div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
 <div class="bg-gray-50 w-full min-h-screen flex items-center justify-center p-8">
   <div class="max-w-md w-full">
     <div class="bg-white rounded-lg border border-gray-200 p-6 sm:p-8 form-style">
@@ -13,32 +16,14 @@
         <p class="text-gray-600">Welcome back to <span class="text-green-600">Football Shop</span></p>
       </div>
 
-      <!-- Form Errors Display -->
-      {% if form.non_field_errors %}
-        <div class="mb-6">
-          {% for error in form.non_field_errors %}
-            <div class="px-4 py-3 rounded-md text-sm border bg-red-50 border-red-200 text-red-700">
-              {{ error }}
-            </div>
-          {% endfor %}
+      <!-- Error Message Container -->
+      <div id="error-container" class="mb-6 hidden">
+        <div class="px-4 py-3 rounded-md text-sm border bg-red-50 border-red-200 text-red-700">
+          <span id="error-message"></span>
         </div>
-      {% endif %}
+      </div>
 
-      {% if form.errors %}
-        <div class="mb-6">
-          {% for field, errors in form.errors.items %}
-            {% if field != '__all__' %}
-              {% for error in errors %}
-                <div class="px-4 py-3 rounded-md text-sm border bg-red-50 border-red-200 text-red-700 mb-2">
-                  <strong>{{ field|title }}:</strong> {{ error }}
-                </div>
-              {% endfor %}
-            {% endif %}
-          {% endfor %}
-        </div>
-      {% endif %}
-
-      <form method="POST" action="" class="space-y-6">
+      <form id="loginForm" class="space-y-6">
         {% csrf_token %}
         
         <div>
@@ -65,31 +50,11 @@
 
         <button 
           type="submit" 
+          id="loginBtn"
           class="w-full bg-green-600 text-white font-medium py-3 px-4 rounded-md hover:bg-green-700 transition-colors">
           Sign In
         </button>
       </form>
-
-      <!-- Messages Display -->
-      {% if messages %}
-        <div class="mt-6">
-          {% for message in messages %}
-            <div 
-              class="
-                px-4 py-3 rounded-md text-sm border
-                {% if message.tags == 'success' %}
-                  bg-green-50 border-green-200 text-green-700
-                {% elif message.tags == 'error' %}
-                  bg-red-50 border-red-200 text-red-700
-                {% else %}
-                  bg-gray-50 border-gray-200 text-gray-700
-                {% endif %}
-              ">
-              {{ message }}
-            </div>
-          {% endfor %}
-        </div>
-      {% endif %}
 
       <div class="mt-6 text-center pt-6 border-t border-gray-200">
         <p class="text-gray-500 text-sm">
@@ -102,4 +67,63 @@
     </div>
   </div>
 </div>
+
+<script>
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const btn = document.getElementById('loginBtn');
+    const errorContainer = document.getElementById('error-container');
+    const errorMessage = document.getElementById('error-message');
+    
+    // Show loading
+    btn.disabled = true;
+    btn.textContent = 'Signing In...';
+    errorContainer.classList.add('hidden');
+    
+    const formData = new FormData(e.target);
+    
+    try {
+      const response = await fetch('/api/login/', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      const data = await response.json();
+      
+      if (data.status === 'success') {
+        showToast('Login successful! Redirecting...', 'success');
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1000);
+      } else {
+        errorMessage.textContent = data.message;
+        errorContainer.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = 'Sign In';
+      }
+    } catch (error) {
+      errorMessage.textContent = 'An error occurred. Please try again.';
+      errorContainer.classList.remove('hidden');
+      btn.disabled = false;
+      btn.textContent = 'Sign In';
+    }
+  });
+
+  function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `px-6 py-4 rounded-lg shadow-lg transform transition-all duration-300 ${
+      type === 'success' ? 'bg-green-600' : 'bg-red-600'
+    } text-white`;
+    toast.textContent = message;
+
+    const container = document.getElementById('toast-container');
+    container.appendChild(toast);
+
+    setTimeout(() => {
+      toast.classList.add('opacity-0');
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
+</script>
 {% endblock content %}

@@ -13,9 +13,11 @@
         <a href="/" class="text-gray-600 hover:text-black font-medium transition-colors">
           Home
         </a>
-        <a href="{% url 'main:create_product' %}" class="text-gray-600 hover:text-black font-medium transition-colors">
+        {% if user.is_authenticated %}
+        <a href="javascript:void(0)" onclick="showCreateModal()" class="text-gray-600 hover:text-black font-medium transition-colors">
           Add Product
         </a>
+        {% endif %}
         <a href="{% url 'main:show_main' %}" class="text-gray-600 hover:text-black font-medium transition-colors">
           Products
         </a>          
@@ -28,7 +30,7 @@
             <div class="text-sm font-medium text-gray-900">{{ user.username }}</div>
             <div class="text-xs text-gray-500">Welcome back 👋</div>
           </div>
-          <a href="{% url 'main:logout' %}" class="text-red-600 hover:text-red-700 font-medium transition-colors">
+          <a href="{% url 'main:logout' %}" onclick="return handleLogout(event)" class="text-red-600 hover:text-red-700 font-medium transition-colors">
             Logout
           </a>
         {% else %}
@@ -62,9 +64,11 @@
         <a href="/" class="block text-gray-600 hover:text-black font-medium py-3 transition-colors">
           Home
         </a>
-        <a href="{% url 'main:create_product' %}" class="block text-gray-600 hover:text-black font-medium py-3 transition-colors">
+        {% if user.is_authenticated %}
+        <a href="javascript:void(0)" onclick="showCreateModal()" class="block text-gray-600 hover:text-black font-medium py-3 transition-colors">
           Add Product
         </a>
+        {% endif %}
         <a href="{% url 'main:show_main' %}" class="block text-gray-600 hover:text-black font-medium py-3 transition-colors">
           Products
         </a>
@@ -76,7 +80,7 @@
             <div class="font-medium text-gray-900">{{ user.username }}</div>
             <div class="text-sm text-gray-500">Welcome back 👋</div>
           </div>
-          <a href="{% url 'main:logout' %}" class="block text-red-600 hover:text-red-700 font-medium py-3 transition-colors">
+          <a href="{% url 'main:logout' %}" onclick="return handleLogout(event)" class="block text-red-600 hover:text-red-700 font-medium py-3 transition-colors">
             Logout
           </a>
         {% else %}
@@ -99,5 +103,22 @@
     btn.addEventListener("click", () => {
       menu.classList.toggle("hidden");
     });
+
+    // Handle logout with toast
+    function handleLogout(event) {
+      event.preventDefault();
+      
+      // Show toast
+      if (typeof showToast === 'function') {
+        showToast('Logging out...', 'success');
+      }
+      
+      // Redirect after short delay
+      setTimeout(() => {
+        window.location.href = event.target.href;
+      }, 500);
+      
+      return false;
+    }
   </script>
 </nav>

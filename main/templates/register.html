@@ -5,6 +5,9 @@
 {% endblock meta %}
 
 {% block content %}
+<!-- Toast Container -->
+<div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
 <div class="form-style">
   <div class="min-h-screen bg-gray-50 flex items-center justify-center p-8">
     <div class="max-w-md w-full relative z-10">
@@ -14,32 +17,14 @@
           <p class="text-gray-500">Create your <span class="text-green-600">Football Shop</span> account</p>
         </div>
 
-        <!-- Form Errors Display -->
-        {% if form.non_field_errors %}
-          <div class="mb-6">
-            {% for error in form.non_field_errors %}
-              <div class="px-4 py-3 rounded text-sm border bg-red-50 border-red-200 text-red-700">
-                {{ error }}
-              </div>
-            {% endfor %}
+        <!-- Error Message Container -->
+        <div id="error-container" class="mb-6 hidden">
+          <div class="px-4 py-3 rounded text-sm border bg-red-50 border-red-200 text-red-700">
+            <span id="error-message"></span>
           </div>
-        {% endif %}
+        </div>
 
-        {% if form.errors %}
-          <div class="mb-6">
-            {% for field, errors in form.errors.items %}
-              {% if field != '__all__' %}
-                {% for error in errors %}
-                  <div class="px-4 py-3 rounded text-sm border bg-red-50 border-red-200 text-red-700 mb-2">
-                    <strong>{{ field|title }}:</strong> {{ error }}
-                  </div>
-                {% endfor %}
-              {% endif %}
-            {% endfor %}
-          </div>
-        {% endif %}
-
-        <form method="POST" action="" class="space-y-5">
+        <form id="registerForm" class="space-y-5">
           {% csrf_token %}
           
           <div>
@@ -62,6 +47,7 @@
               required 
               class="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-green-500 transition duration-200" 
               placeholder="Create a password">
+            <p class="mt-1 text-xs text-gray-500">Minimum 8 characters</p>
           </div>
 
           <div>
@@ -77,31 +63,11 @@
 
           <button 
             type="submit" 
+            id="registerBtn"
             class="w-full bg-green-600 text-white font-medium py-3 px-4 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-200">
             Create Account
           </button>
         </form>
-
-        <!-- Messages Display -->
-        {% if messages %}
-          <div class="mt-6">
-            {% for message in messages %}
-              <div 
-                class="
-                  px-4 py-3 rounded text-sm border
-                  {% if message.tags == 'success' %}
-                    bg-green-50 border-green-200 text-green-700
-                  {% elif message.tags == 'error' %}
-                    bg-red-50 border-red-200 text-red-700
-                  {% else %}
-                    bg-gray-50 border-gray-200 text-gray-700
-                  {% endif %}
-                ">
-                {{ message }}
-              </div>
-            {% endfor %}
-          </div>
-        {% endif %}
 
         <div class="mt-6 text-center">
           <p class="text-gray-500 text-sm">
@@ -115,4 +81,63 @@
     </div>
   </div>
 </div>
+
+<script>
+  document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const btn = document.getElementById('registerBtn');
+    const errorContainer = document.getElementById('error-container');
+    const errorMessage = document.getElementById('error-message');
+    
+    // Show loading
+    btn.disabled = true;
+    btn.textContent = 'Creating Account...';
+    errorContainer.classList.add('hidden');
+    
+    const formData = new FormData(e.target);
+    
+    try {
+      const response = await fetch('/api/register/', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      const data = await response.json();
+      
+      if (data.status === 'success') {
+        showToast('Registration successful! Redirecting to login...', 'success');
+        setTimeout(() => {
+          window.location.href = '/login/';
+        }, 1500);
+      } else {
+        errorMessage.textContent = data.message;
+        errorContainer.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
+      }
+    } catch (error) {
+      errorMessage.textContent = 'An error occurred. Please try again.';
+      errorContainer.classList.remove('hidden');
+      btn.disabled = false;
+      btn.textContent = 'Create Account';
+    }
+  });
+
+  function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `px-6 py-4 rounded-lg shadow-lg transform transition-all duration-300 ${
+      type === 'success' ? 'bg-green-600' : 'bg-red-600'
+    } text-white`;
+    toast.textContent = message;
+
+    const container = document.getElementById('toast-container');
+    container.appendChild(toast);
+
+    setTimeout(() => {
+      toast.classList.add('opacity-0');
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
+</script>
 {% endblock content %}

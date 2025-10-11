@@ -2,134 +2,195 @@
 {% load static %}
 
 {% block meta %}
-<title>Product Detail - Juventus Store Indonesia</title>
+<title>{{ product.name }} - Juventus Store Indonesia</title>
 {% endblock meta %}
 
 {% block content %}
 {% include 'navbar.html' %}
+
+<!-- Toast Notification Container -->
+<div id="toast-container" class="fixed top-20 right-4 z-50 space-y-2"></div>
+
 <div class="bg-gray-50 w-full pt-16 min-h-screen">
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
     <!-- Back Button -->
-    <div class="mb-6">
-      <a href="{% url 'main:show_main' %}" class="text-gray-600 hover:text-black font-medium transition">
-        ← Back to Products
-      </a>
-    </div>
-
-    <!-- Loading State -->
-    <div id="loading-state" class="bg-white border border-gray-200 rounded-lg p-12 text-center">
-      <svg class="animate-spin h-8 w-8 text-black mx-auto mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+    <button onclick="window.history.back()" class="flex items-center gap-2 text-gray-600 hover:text-black mb-6 font-medium transition">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
       </svg>
-      <p class="text-gray-600">Loading product details...</p>
-    </div>
+      Kembali ke Products
+    </button>
 
-    <!-- Error State -->
-    <div id="error-state" class="bg-white border border-gray-200 rounded-lg p-12 text-center hidden">
-      <div class="text-red-500 text-5xl mb-3">⚠️</div>
-      <h3 class="text-lg font-semibold text-gray-900 mb-1">Failed to load product</h3>
-      <p class="text-gray-500">Please try again later.</p>
-    </div>
+    <!-- Product Detail Container -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 bg-white rounded-lg shadow-sm p-6">
+      
+      <!-- Product Image -->
+      <div class="space-y-4">
+        <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
+          {% if product.thumbnail %}
+            <img src="{{ product.thumbnail }}" alt="{{ product.name }}" class="w-full h-full object-contain p-8">
+          {% else %}
+            <div class="text-gray-400 text-center">
+              <svg class="w-32 h-32 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+              <p class="text-sm">No Image Available</p>
+            </div>
+          {% endif %}
+        </div>
 
-    <!-- Product Content -->
-    <div id="product-content" class="bg-white border border-gray-200 rounded-lg overflow-hidden hidden">
-      <!-- Image -->
-      <div id="product-image-container" class="px-6 sm:px-8 pt-6 hidden">
-        <img id="product-image" src="" alt="" class="w-full h-80 object-cover rounded-lg">
+        {% if product.is_featured %}
+        <div class="flex items-center gap-2 bg-yellow-50 text-yellow-800 px-4 py-2 rounded-lg">
+          <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+          </svg>
+          <span class="text-sm font-medium">Featured Product</span>
+        </div>
+        {% endif %}
       </div>
 
-      <!-- Detail -->
-      <div class="p-6 sm:p-8">
-        <h1 id="product-name" class="text-3xl font-bold text-gray-900 mb-3">Loading...</h1>
-        <p id="product-price" class="text-xl font-semibold text-gray-800 mb-4">Rp 0</p>
-        <div id="product-category" class="inline-block bg-black text-white text-xs font-medium px-3 py-1 rounded-md mb-4">Category</div>
-        <p id="product-description" class="text-gray-700 leading-relaxed whitespace-pre-line"></p>
-      </div>
+      <!-- Product Info -->
+      <div class="space-y-6">
+        <!-- Brand & Category -->
+        <div class="flex items-center gap-2 text-sm">
+          <span class="bg-black text-white px-3 py-1 rounded font-medium">{{ product.category }}</span>
+          <span class="text-gray-600">{{ product.brand|default:"Unknown Brand" }}</span>
+          {% if product.rating %}
+          <span class="text-gray-600">• ⭐ {{ product.rating }}</span>
+          {% endif %}
+        </div>
 
-      <!-- Footer -->
-      <div class="border-t border-gray-200 p-6 bg-gray-50 flex justify-between items-center">
-        <p class="text-sm text-gray-500" id="product-date">Added on: ...</p>
-        <p class="text-sm text-gray-500" id="product-author">Seller: ...</p>
+        <!-- Title -->
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ product.name }}</h1>
+          <p class="text-sm text-gray-600">
+            Sold by: <span class="font-medium">{{ product.user.username|default:"Juventus Store" }}</span>
+          </p>
+        </div>
+
+        <!-- Price -->
+        <div class="text-3xl font-bold text-black">Rp {{ product.price|floatformat:0 }}</div>
+
+        <!-- Stock Info -->
+        <div class="flex items-center gap-2">
+          {% if product.stock > 0 %}
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+              <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+              </svg>
+              In Stock ({{ product.stock }} tersedia)
+            </span>
+          {% else %}
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+              Out of Stock
+            </span>
+          {% endif %}
+        </div>
+
+        <!-- Description -->
+        <div class="border-t border-b py-4">
+          <h3 class="font-semibold text-lg mb-2">Deskripsi Produk</h3>
+          <p class="text-gray-700 leading-relaxed whitespace-pre-line">{{ product.description }}</p>
+        </div>
+
+        <!-- Quantity Selector & Add to Cart -->
+        {% if product.stock > 0 %}
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-900 mb-2">Jumlah</label>
+            <div class="flex items-center gap-3">
+              <button onclick="changeQuantity(-1)" class="w-10 h-10 border border-gray-300 rounded-lg hover:border-black transition">-</button>
+              <span id="quantity" class="w-12 text-center font-medium">1</span>
+              <button onclick="changeQuantity(1)" class="w-10 h-10 border border-gray-300 rounded-lg hover:border-black transition">+</button>
+            </div>
+          </div>
+
+          <button onclick="addToCart()" class="w-full bg-black text-white py-4 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-gray-800 transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+            Tambah ke Keranjang
+          </button>
+        </div>
+        {% endif %}
+
+        <!-- Owner Actions -->
+        {% if is_owner %}
+        <div class="flex gap-3 pt-4 border-t">
+          <a href="{% url 'main:edit_product' product.id %}" class="flex-1 bg-blue-600 text-white py-3 rounded-lg font-medium text-center hover:bg-blue-700 transition">
+            Edit Product
+          </a>
+          <button onclick="deleteProduct()" class="flex-1 bg-red-600 text-white py-3 rounded-lg font-medium hover:bg-red-700 transition">
+            Delete Product
+          </button>
+        </div>
+        {% endif %}
+
+        <!-- Features -->
+        <div class="grid grid-cols-3 gap-4 pt-4">
+          <div class="flex flex-col items-center text-center gap-2">
+            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+            </svg>
+            <span class="text-xs text-gray-600">Gratis Ongkir</span>
+          </div>
+          <div class="flex flex-col items-center text-center gap-2">
+            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+            </svg>
+            <span class="text-xs text-gray-600">Produk Original</span>
+          </div>
+          <div class="flex flex-col items-center text-center gap-2">
+            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            <span class="text-xs text-gray-600">Garansi 30 Hari</span>
+          </div>
+        </div>
       </div>
     </div>
+
   </div>
 </div>
 
-<!-- Toast container -->
-<div id="toast-container" class="fixed bottom-6 right-6 z-50 space-y-2"></div>
-
 <script>
-const PRODUCT_ID = "{{ product.id }}";
-const PRODUCT_DETAIL_ENDPOINT = `{% url 'main:show_json_by_id' '00000000-0000-0000-0000-000000000000' %}`.replace('00000000-0000-0000-0000-000000000000', PRODUCT_ID);
+  let currentQuantity = 1;
+  const maxStock = {{ product.stock }};
 
-const loadingState = document.getElementById('loading-state');
-const errorState = document.getElementById('error-state');
-const productContent = document.getElementById('product-content');
-const productImage = document.getElementById('product-image');
-const productImageContainer = document.getElementById('product-image-container');
-const productName = document.getElementById('product-name');
-const productPrice = document.getElementById('product-price');
-const productDescription = document.getElementById('product-description');
-const productCategory = document.getElementById('product-category');
-const productDate = document.getElementById('product-date');
-const productAuthor = document.getElementById('product-author');
-
-// Toast
-function showToast(title, message, type) {
-  const container = document.getElementById('toast-container');
-  const colors = {
-    success: 'bg-green-600',
-    error: 'bg-red-600',
-    normal: 'bg-black'
-  };
-  const toast = document.createElement('div');
-  toast.className = `text-white ${colors[type] || colors.normal} px-5 py-3 rounded-lg shadow-lg`;
-  toast.innerHTML = `<strong>${title}</strong><br><span class="text-sm">${message}</span>`;
-  container.appendChild(toast);
-  setTimeout(() => toast.remove(), 3500);
-}
-
-function showState(state) {
-  loadingState.classList.toggle('hidden', state !== 'loading');
-  errorState.classList.toggle('hidden', state !== 'error');
-  productContent.classList.toggle('hidden', state !== 'ready');
-}
-
-function renderProduct(product) {
-  productName.textContent = product.name;
-  productPrice.textContent = `Rp ${parseInt(product.price).toLocaleString('id-ID')}`;
-  productDescription.textContent = product.description;
-  productCategory.textContent = product.category;
-  productDate.textContent = `Added on: ${new Date(product.created_at).toLocaleDateString('id-ID')}`;
-  productAuthor.textContent = `Seller: ${product.user_username || 'Unknown'}`;
-
-  if (product.thumbnail) {
-    productImage.src = product.thumbnail;
-    productImage.alt = product.name;
-    productImageContainer.classList.remove('hidden');
-  } else {
-    productImageContainer.classList.add('hidden');
+  function changeQuantity(delta) {
+    const newQuantity = currentQuantity + delta;
+    if (newQuantity >= 1 && newQuantity <= maxStock) {
+      currentQuantity = newQuantity;
+      document.getElementById('quantity').textContent = currentQuantity;
+    }
   }
-}
 
-async function loadProductDetail() {
-  try {
-    showState('loading');
-    const response = await fetch(PRODUCT_DETAIL_ENDPOINT);
-    if (!response.ok) throw new Error('Failed to fetch product');
-    const data = await response.json();
-    renderProduct(data);
-    showState('ready');
-    showToast("Product Loaded ⚽", "Detail produk berhasil dimuat dari Juventus Store Indonesia.", "success");
-  } catch (error) {
-    console.error(error);
-    showState('error');
-    showToast("Error 😢", "Gagal memuat detail produk.", "error");
+  function addToCart() {
+    // Redirect to add_to_cart view
+    window.location.href = "{% url 'main:add_to_cart' product.id %}";
   }
-}
 
-loadProductDetail();
+  function deleteProduct() {
+    if (confirm('Apakah Anda yakin ingin menghapus produk ini?')) {
+      window.location.href = "{% url 'main:delete_product' product.id %}";
+    }
+  }
+
+  function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `px-6 py-4 rounded-lg shadow-lg transform transition-all duration-300 ${
+      type === 'success' ? 'bg-green-600' : 'bg-red-600'
+    } text-white font-medium`;
+    toast.textContent = message;
+
+    const container = document.getElementById('toast-container');
+    container.appendChild(toast);
+
+    setTimeout(() => {
+      toast.classList.add('opacity-0');
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
 </script>
 {% endblock content %}
