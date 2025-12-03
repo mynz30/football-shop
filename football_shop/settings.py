@@ -1,43 +1,29 @@
-"""
-Django settings for football_shop project.
-"""
 import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Load environment variables
 load_dotenv()
 
-# Build paths
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Security
 SECRET_KEY = os.getenv(
     "SECRET_KEY",
     "django-insecure-d6x7y=3aw^5!qn&x(*4vyjyldqlg3%iw#114n@tix5jg))f2jh"
 )
 
 PRODUCTION = os.getenv("PRODUCTION", "False").lower() == "true"
-
 DEBUG = True
 
-# ALLOWED_HOSTS - PENTING untuk Flutter!
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
-    "10.0.2.2",  # Android Emulator
     "faishal-khoiriansyah-footballshop.pbp.cs.ui.ac.id",
 ]
 
-# CSRF Trusted Origins
 CSRF_TRUSTED_ORIGINS = [
     "https://faishal-khoiriansyah-footballshop.pbp.cs.ui.ac.id",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-    "http://10.0.2.2:8000",
 ]
 
-# Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -46,16 +32,16 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
-    'corsheaders',  # TAMBAHKAN INI
+    'corsheaders',  # Tambahkan ini
     'main',
-    'authentication',  # TAMBAHKAN INI
+    'authentication',  # Tambahkan ini
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # TAMBAHKAN INI - HARUS SEBELUM CommonMiddleware
+    'corsheaders.middleware.CorsMiddleware',  # Tambahkan ini
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -63,27 +49,13 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# CORS Configuration - PENTING untuk Flutter!
+# CORS settings untuk Flutter
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-    "http://10.0.2.2:8000",
-]
-
-# Cookie Settings untuk Cross-Origin
-CSRF_COOKIE_SECURE = False  # Set True di production dengan HTTPS
-SESSION_COOKIE_SECURE = False  # Set True di production dengan HTTPS
-CSRF_COOKIE_SAMESITE = 'Lax'
-SESSION_COOKIE_SAMESITE = 'Lax'
-
-# Untuk development
-if not PRODUCTION:
-    CSRF_COOKIE_SECURE = False
-    SESSION_COOKIE_SECURE = False
-    CSRF_COOKIE_SAMESITE = 'Lax'
-    SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SAMESITE = 'None'
 
 ROOT_URLCONF = 'football_shop.urls'
 
@@ -104,7 +76,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'football_shop.wsgi.application'
 
-# Database
 if PRODUCTION:
     DATABASES = {
         'default': {
@@ -127,7 +98,6 @@ else:
         }
     }
 
-# Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -143,13 +113,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# Internationalization
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# Static files
 STATIC_URL = '/static/'
 
 if DEBUG:
